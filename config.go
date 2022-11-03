@@ -20,9 +20,9 @@ type TimeOfDay struct {
 }
 
 type ConfigManager interface {
-	GetPublishTime() TimeOfDay
+	PublishTime() TimeOfDay
 	SetPublishTime(time TimeOfDay)
-	GetAppID() string
+	AppID() string
 	SetAppID(appID string)
 }
 
@@ -38,7 +38,7 @@ func NewLocalFileConfigManager() LocalFileConfigManager {
 	}
 }
 
-func (c LocalFileConfigManager) GetPublishTime() TimeOfDay {
+func (c LocalFileConfigManager) PublishTime() TimeOfDay {
 	config := c.fetchConfiguration()
 	return config.PublishTime
 }
@@ -57,7 +57,7 @@ func (c LocalFileConfigManager) SetPublishTime(time TimeOfDay) {
 	c.writeToFile(config)
 }
 
-func (c LocalFileConfigManager) GetAppID() string {
+func (c LocalFileConfigManager) AppID() string {
 	config := c.fetchConfiguration()
 	if config.AppID == "" {
 		c.SetAppID(c.DefaultAppID)

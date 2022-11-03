@@ -14,7 +14,7 @@ func main() {
 	flag.Parse()
 
 	var configManager ConfigManager = NewLocalFileConfigManager()
-	publishTime := configManager.GetPublishTime()
+	publishTime := configManager.PublishTime()
 
 	if *hourFlag >= 0 || *minuteFlag >= 0 {
 		if *hourFlag >= 0 {

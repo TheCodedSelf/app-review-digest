@@ -18,7 +18,7 @@ type JobScheduler struct {
 	job   func()
 }
 
-func getNextTickDuration(at TimeOfDay) time.Duration {
+func nextTickDuration(at TimeOfDay) time.Duration {
 	now := time.Now()
 	nextTick := time.Date(now.Year(), now.Month(), now.Day(), at.Hour, at.Minute, 0, 0, time.Local)
 	for nextTick.Before(now) {
@@ -34,7 +34,7 @@ func getNextTickDuration(at TimeOfDay) time.Duration {
 
 func ScheduleJob(at TimeOfDay, job func()) {
 	scheduler := JobScheduler{}
-	scheduler.timer = time.NewTimer(getNextTickDuration(at))
+	scheduler.timer = time.NewTimer(nextTickDuration(at))
 	scheduler.at = at
 	scheduler.job = job
 	scheduler.run()
@@ -50,7 +50,7 @@ func (j JobScheduler) run() {
 }
 
 func (j JobScheduler) updateJobTicker() {
-	nextTick := getNextTickDuration(j.at)
+	nextTick := nextTickDuration(j.at)
 	fmt.Printf("Updating job ticker to run at %d", nextTick)
 	j.timer.Reset(nextTick)
 }

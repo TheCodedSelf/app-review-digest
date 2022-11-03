@@ -24,7 +24,7 @@ func NewRSSReviewFetcher(configManager ConfigManager) RSSReviewFetcher {
 }
 
 func (r RSSReviewFetcher) FetchReviews(sinceTime time.Time, atTime time.Time) []ReviewsResponseEntry {
-	appID := r.ConfigManager.GetAppID()
+	appID := r.ConfigManager.AppID()
 	url := fmt.Sprintf("https://itunes.apple.com/us/rss/customerreviews/id=%s/sortBy=mostRecent/page=1/json", appID)
 	response, error := http.Get(url)
 	if error != nil {

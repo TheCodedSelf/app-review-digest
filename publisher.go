@@ -17,10 +17,10 @@ import (
 // const PUBLISH_INTERVAL_PERIOD time.Duration = 1 * time.Minute
 
 // Or, to populate over a greater time frame:
-// const PUBLISH_INTERVAL_PERIOD time.Duration = 14 * 24 * time.Hour
+const PUBLISH_INTERVAL_PERIOD time.Duration = 14 * 24 * time.Hour
 
 // Or, leave at 24 hours.
-const PUBLISH_INTERVAL_PERIOD time.Duration = 24 * time.Hour
+// const PUBLISH_INTERVAL_PERIOD time.Duration = 24 * time.Hour
 
 type Publisher struct {
 	ReviewFetcher ReviewFetcher
@@ -29,12 +29,12 @@ type Publisher struct {
 
 func NewPublisher(configManager ConfigManager) Publisher {
 	publisher := Publisher{}
-	publisher.OutputPath = "./output/" + configManager.GetAppID()
+	publisher.OutputPath = "./output/" + configManager.AppID()
 	publisher.ReviewFetcher = NewRSSReviewFetcher(configManager)
 	return publisher
 }
 
-// If there is a digest at publish time in the last 24 hours, use that
+// If there is a digest at publish time since the last publish interval, use that
 // If not, make a digest and write it at publish time
 func (p Publisher) PublishLatest(atTime time.Time) string {
 	lastInterval := atTime.Add(-1 * PUBLISH_INTERVAL_PERIOD)
@@ -61,11 +61,30 @@ func (p Publisher) writeDigest(since time.Time, until time.Time) string {
 	}
 
 	os.Remove(filePath)
-
+	fmt.Printf("Creating json at %s\n", filePath)
 	err = ioutil.WriteFile(filePath, content, 0644)
 	if err != nil {
-		log.Fatalf("Error writing new digest to %s.\nError: %v", filePath, err)
+		log.Fatalf("Error writing new digest to %s.\nError: %s", filePath, err)
 	}
+
+	// Write the processed markdown file
+	mdName := publishTimestamp + ".md"
+	mdPath := filepath.Join(p.OutputPath, mdName)
+	fmt.Printf("Creating markdown at %s\n", mdPath)
+	md, err := os.Create(mdPath)
+	if err != nil {
+		log.Fatalf("Error creating processed markdown file: %s", err)
+	}
+	defer md.Close()
+	_, err = md.WriteString(digest.toMarkdown())
+	if err != nil {
+		log.Fatalf("Error writing to processed markdown file: %s", err)
+	}
+	err = md.Sync()
+	if err != nil {
+		log.Fatalf("Error saving markdown file: %s", err)
+	}
+
 	return filePath
 }
 

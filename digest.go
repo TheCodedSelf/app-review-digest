@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -18,30 +19,51 @@ func NewDigest(reviewResponses []ReviewsResponseEntry, since time.Time, until ti
 	var reviews []Review
 	for _, reviewResponse := range reviewResponses {
 		review := Review{
-			Title:   reviewResponse.Title.Label,
-			Content: reviewResponse.Content.Label,
-			Date:    reviewResponse.Updated.Label,
-			Rating:  reviewResponse.Rating.Label,
+			title:   reviewResponse.Title.Label,
+			content: reviewResponse.Content.Label,
+			date:    reviewResponse.Updated.Label,
+			rating:  reviewResponse.Rating.Label,
 		}
 		reviews = append(reviews, review)
 	}
 	return Digest{
-		Title:    title,
-		Subtitle: subtitle,
-		Reviews:  reviews,
+		title:    title,
+		subtitle: subtitle,
+		reviews:  reviews,
 	}
 
 }
 
 type Digest struct {
-	Title    string
-	Subtitle string
-	Reviews  []Review
+	title    string
+	subtitle string
+	reviews  []Review
+}
+
+func (d Digest) toMarkdown() string {
+	var builder strings.Builder
+
+	builder.WriteString(fmt.Sprintf("# %s\n", d.title))
+	builder.WriteString(fmt.Sprintf("%s\n", d.subtitle))
+	for _, review := range d.reviews {
+		builder.WriteString(fmt.Sprintf("## %s\n", review.title))
+		date, err := time.Parse(time.RFC3339, review.date)
+		var dateString string
+		if err == nil {
+			// A more readable date.
+			dateString = date.Format(time.ANSIC)
+		} else {
+			dateString = review.date
+		}
+		builder.WriteString(fmt.Sprintf("**%s star(s)** — _%s_\n\n", review.rating, dateString))
+		builder.WriteString(fmt.Sprintf("%s\n", review.content))
+	}
+	return builder.String()
 }
 
 type Review struct {
-	Title   string
-	Content string
-	Date    string
-	Rating  string
+	title   string
+	content string
+	date    string
+	rating  string
 }
