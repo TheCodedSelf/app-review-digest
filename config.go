@@ -1,3 +1,8 @@
+/*
+config.go
+
+Uses a local config.json file to store configuration data
+*/
 package main
 
 import (
@@ -10,6 +15,7 @@ import (
 	"time"
 )
 
+// Data to persist in config.json
 type Configuration struct {
 	PublishTime     TimeOfDay
 	AppID           string
@@ -21,6 +27,8 @@ type TimeOfDay struct {
 	Minute int
 }
 
+// If moving to a better solution than a local file, this interface
+// allows swapping out the LocalFileConfigManager for i.e. a database instance
 type ConfigManager interface {
 	PublishTime() TimeOfDay
 	SetPublishTime(time TimeOfDay)
@@ -30,12 +38,18 @@ type ConfigManager interface {
 	SetPublishInterval(interval time.Duration)
 }
 
+// A ConfigManager that stores configuration values in a file.
+// Note that this is not atomic; avoid concurrent writes.
 type LocalFileConfigManager struct {
-	FilePath               string
-	DefaultAppID           string
+	// Where to store the file
+	FilePath string
+	// If not configured, what app ID to use
+	DefaultAppID string
+	// If not configured, the length of the digest to be published
 	DefaultPublishInterval time.Duration
 }
 
+// Creates a LocalFileConfigManager with sensible defaults
 func NewLocalFileConfigManager() LocalFileConfigManager {
 	return LocalFileConfigManager{
 		FilePath:               "./config.json",
@@ -95,6 +109,8 @@ func (c LocalFileConfigManager) SetPublishInterval(interval time.Duration) {
 	c.writeToFile(config)
 }
 
+// Creates the local file if it doesn't exist.
+// Returns a Configuration object fetched from the local configuration file.
 func (c LocalFileConfigManager) fetchConfiguration() Configuration {
 	_, err := os.Stat(c.FilePath)
 	if err != nil {
@@ -124,6 +140,7 @@ func (c LocalFileConfigManager) fetchConfiguration() Configuration {
 	return configuration
 }
 
+// Persist a Configuration object
 func (c LocalFileConfigManager) writeToFile(config Configuration) {
 	fmt.Print("Writing new configuration to file:")
 	fmt.Println(config)

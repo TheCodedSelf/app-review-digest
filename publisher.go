@@ -1,3 +1,9 @@
+/*
+publisher.go
+
+Creates and publishes digests
+*/
+
 package main
 
 import (
@@ -19,6 +25,8 @@ type Publisher struct {
 	publishInterval time.Duration
 }
 
+// Creates a new publisher based on the given ConfigManager.
+// Outputs digests in a folder based on the app ID, thereby allowing for multiple apps
 func NewPublisher(configManager ConfigManager) Publisher {
 	publisher := Publisher{}
 	publisher.outputPath = "./output/" + configManager.AppID()
@@ -27,8 +35,8 @@ func NewPublisher(configManager ConfigManager) Publisher {
 	return publisher
 }
 
-// If there is a digest at publish time since the last publish interval, use that
-// If not, make a digest and write it at publish time
+// Returns the file path to the latest published digest if it is within the publish interval
+// If there are no recent digests, creates a new one and returns its file path
 func (p Publisher) PublishLatest(atTime time.Time) string {
 	lastInterval := atTime.Add(-1 * p.publishInterval)
 	lastDigestTime, lastDigestPath := p.lastDigest()
@@ -39,6 +47,7 @@ func (p Publisher) PublishLatest(atTime time.Time) string {
 	}
 }
 
+// Fetches reviews from App Store Connect and creates a digest for reviews in a given time window
 func (p Publisher) writeDigest(since time.Time, until time.Time) string {
 	fmt.Println("Fetching new reviews...")
 	reviewsResponse := p.reviewFetcher.FetchReviews(since, until)
@@ -81,7 +90,10 @@ func (p Publisher) writeDigest(since time.Time, until time.Time) string {
 	return filePath
 }
 
+// Fetches the last digest, if any
+// Returns the time it was published and the file path
 func (p Publisher) lastDigest() (time.Time, string) {
+	// Create the output directory if it doesn't exist
 	if _, err := os.Stat(p.outputPath); errors.Is(err, os.ErrNotExist) {
 		err := os.MkdirAll(p.outputPath, os.ModePerm)
 		if err != nil {
@@ -96,6 +108,7 @@ func (p Publisher) lastDigest() (time.Time, string) {
 
 	var latestTimestamp time.Time
 	var latestFile string
+	// Traverse the directory to find the latest digest
 	for _, file := range files {
 		fileName := strings.TrimSuffix(file.Name(), filepath.Ext(file.Name()))
 		fileTimestamp, err := strconv.ParseInt(fileName, 10, 64)

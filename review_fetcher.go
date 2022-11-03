@@ -1,3 +1,8 @@
+/*
+review_fetcher.go
+
+Fetches reviews for an app from App Store Connect
+*/
 package main
 
 import (
@@ -9,22 +14,29 @@ import (
 	"time"
 )
 
+// This interface abstracts the review fetcher
+// In order to improve testability and allow swapping out the fetcher
+// i.e. to replace the RSS feed with the newer App Store Connect API
 type ReviewFetcher interface {
 	FetchReviews(sinceTime time.Time, atTime time.Time) []ReviewsResponseEntry
 }
 
 type RSSReviewFetcher struct {
-	ConfigManager ConfigManager
+	configManager ConfigManager
 }
 
+// Constructs a review fetcher with the given configuration manager
 func NewRSSReviewFetcher(configManager ConfigManager) RSSReviewFetcher {
 	reviewFetcher := RSSReviewFetcher{}
-	reviewFetcher.ConfigManager = configManager
+	reviewFetcher.configManager = configManager
 	return reviewFetcher
 }
 
+// Fetch reviews from the app's RSS feed.
+// Note that this does not implement pagination. This should work fine for an interval of 1 day,
+// but fetching longer intervals could miss reviews.
 func (r RSSReviewFetcher) FetchReviews(sinceTime time.Time, atTime time.Time) []ReviewsResponseEntry {
-	appID := r.ConfigManager.AppID()
+	appID := r.configManager.AppID()
 	url := fmt.Sprintf("https://itunes.apple.com/us/rss/customerreviews/id=%s/sortBy=mostRecent/page=1/json", appID)
 	response, error := http.Get(url)
 	if error != nil {
