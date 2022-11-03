@@ -30,7 +30,6 @@ func getNextTickDuration(at TimeOfDay) time.Duration {
 		log.Fatal("Scheduled job at bad duration.")
 	}
 	return duration
-
 }
 
 func ScheduleJob(at TimeOfDay, job func()) {
