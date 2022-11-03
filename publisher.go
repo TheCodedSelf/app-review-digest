@@ -13,31 +13,24 @@ import (
 	"time"
 )
 
-// For demonstration purposes, consider changing the interval period to once per minute:
-// const PUBLISH_INTERVAL_PERIOD time.Duration = 1 * time.Minute
-
-// Or, to populate over a greater time frame:
-const PUBLISH_INTERVAL_PERIOD time.Duration = 14 * 24 * time.Hour
-
-// Or, leave at 24 hours.
-// const PUBLISH_INTERVAL_PERIOD time.Duration = 24 * time.Hour
-
 type Publisher struct {
-	ReviewFetcher ReviewFetcher
-	OutputPath    string
+	reviewFetcher   ReviewFetcher
+	outputPath      string
+	publishInterval time.Duration
 }
 
 func NewPublisher(configManager ConfigManager) Publisher {
 	publisher := Publisher{}
-	publisher.OutputPath = "./output/" + configManager.AppID()
-	publisher.ReviewFetcher = NewRSSReviewFetcher(configManager)
+	publisher.outputPath = "./output/" + configManager.AppID()
+	publisher.reviewFetcher = NewRSSReviewFetcher(configManager)
+	publisher.publishInterval = configManager.PublishInterval()
 	return publisher
 }
 
 // If there is a digest at publish time since the last publish interval, use that
 // If not, make a digest and write it at publish time
 func (p Publisher) PublishLatest(atTime time.Time) string {
-	lastInterval := atTime.Add(-1 * PUBLISH_INTERVAL_PERIOD)
+	lastInterval := atTime.Add(-1 * p.publishInterval)
 	lastDigestTime, lastDigestPath := p.lastDigest()
 	if lastDigestTime.After(lastInterval) {
 		return lastDigestPath
@@ -48,12 +41,12 @@ func (p Publisher) PublishLatest(atTime time.Time) string {
 
 func (p Publisher) writeDigest(since time.Time, until time.Time) string {
 	fmt.Println("Fetching new reviews...")
-	reviewsResponse := p.ReviewFetcher.FetchReviews(since, until)
+	reviewsResponse := p.reviewFetcher.FetchReviews(since, until)
 	digest := NewDigest(reviewsResponse, since, until)
 
 	publishTimestamp := strconv.FormatInt(until.Unix(), 10)
 	fileName := publishTimestamp + ".json"
-	filePath := filepath.Join(p.OutputPath, fileName)
+	filePath := filepath.Join(p.outputPath, fileName)
 
 	content, err := json.Marshal(digest)
 	if err != nil {
@@ -69,7 +62,7 @@ func (p Publisher) writeDigest(since time.Time, until time.Time) string {
 
 	// Write the processed markdown file
 	mdName := publishTimestamp + ".md"
-	mdPath := filepath.Join(p.OutputPath, mdName)
+	mdPath := filepath.Join(p.outputPath, mdName)
 	fmt.Printf("Creating markdown at %s\n", mdPath)
 	md, err := os.Create(mdPath)
 	if err != nil {
@@ -89,16 +82,16 @@ func (p Publisher) writeDigest(since time.Time, until time.Time) string {
 }
 
 func (p Publisher) lastDigest() (time.Time, string) {
-	if _, err := os.Stat(p.OutputPath); errors.Is(err, os.ErrNotExist) {
-		err := os.MkdirAll(p.OutputPath, os.ModePerm)
+	if _, err := os.Stat(p.outputPath); errors.Is(err, os.ErrNotExist) {
+		err := os.MkdirAll(p.outputPath, os.ModePerm)
 		if err != nil {
-			log.Fatalf("Error making directory %s: %v", p.OutputPath, err)
+			log.Fatalf("Error making directory %s: %v", p.outputPath, err)
 		}
 	}
 
-	files, err := ioutil.ReadDir(p.OutputPath)
+	files, err := ioutil.ReadDir(p.outputPath)
 	if err != nil {
-		log.Fatalf("Error reading directory %s: %v", p.OutputPath, err)
+		log.Fatalf("Error reading directory %s: %v", p.outputPath, err)
 	}
 
 	var latestTimestamp time.Time
@@ -114,7 +107,7 @@ func (p Publisher) lastDigest() (time.Time, string) {
 
 		if digestTime.After(latestTimestamp) {
 			latestTimestamp = digestTime
-			latestFile = filepath.Join(p.OutputPath, file.Name())
+			latestFile = filepath.Join(p.outputPath, file.Name())
 		}
 	}
 	return latestTimestamp, latestFile

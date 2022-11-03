@@ -7,11 +7,13 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"time"
 )
 
 type Configuration struct {
-	PublishTime TimeOfDay
-	AppID       string
+	PublishTime     TimeOfDay
+	AppID           string
+	PublishInterval time.Duration
 }
 
 type TimeOfDay struct {
@@ -24,17 +26,21 @@ type ConfigManager interface {
 	SetPublishTime(time TimeOfDay)
 	AppID() string
 	SetAppID(appID string)
+	PublishInterval() time.Duration
+	SetPublishInterval(interval time.Duration)
 }
 
 type LocalFileConfigManager struct {
-	FilePath     string
-	DefaultAppID string
+	FilePath               string
+	DefaultAppID           string
+	DefaultPublishInterval time.Duration
 }
 
 func NewLocalFileConfigManager() LocalFileConfigManager {
 	return LocalFileConfigManager{
-		FilePath:     "./config.json",
-		DefaultAppID: "595068606",
+		FilePath:               "./config.json",
+		DefaultAppID:           "595068606",
+		DefaultPublishInterval: 24 * time.Hour,
 	}
 }
 
@@ -70,6 +76,22 @@ func (c LocalFileConfigManager) AppID() string {
 func (c LocalFileConfigManager) SetAppID(appID string) {
 	config := c.fetchConfiguration()
 	config.AppID = appID
+	c.writeToFile(config)
+}
+
+func (c LocalFileConfigManager) PublishInterval() time.Duration {
+	config := c.fetchConfiguration()
+	if config.PublishInterval <= 0 {
+		c.SetPublishInterval(c.DefaultPublishInterval)
+		return c.DefaultPublishInterval
+	} else {
+		return config.PublishInterval
+	}
+}
+
+func (c LocalFileConfigManager) SetPublishInterval(interval time.Duration) {
+	config := c.fetchConfiguration()
+	config.PublishInterval = interval
 	c.writeToFile(config)
 }
 

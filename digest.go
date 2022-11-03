@@ -31,7 +31,6 @@ func NewDigest(reviewResponses []ReviewsResponseEntry, since time.Time, until ti
 		subtitle: subtitle,
 		reviews:  reviews,
 	}
-
 }
 
 type Digest struct {
