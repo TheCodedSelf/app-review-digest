@@ -15,16 +15,16 @@ import (
 	"time"
 )
 
+type TimeOfDay struct {
+	Hour   int
+	Minute int
+}
+
 // Data to persist in config.json
 type Configuration struct {
 	PublishTime     TimeOfDay
 	AppID           string
 	PublishInterval time.Duration
-}
-
-type TimeOfDay struct {
-	Hour   int
-	Minute int
 }
 
 // If moving to a better solution than a local file, this interface

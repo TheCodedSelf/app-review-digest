@@ -56,7 +56,7 @@ func NewDigest(reviewResponses []ReviewsResponseEntry, since time.Time, until ti
 }
 
 // Creates a markdown string representing the digest
-func (d Digest) toMarkdown() string {
+func (d Digest) ToMarkdown() string {
 	var builder strings.Builder
 
 	builder.WriteString(fmt.Sprintf("# %s\n", d.Title))

@@ -78,7 +78,7 @@ func (p Publisher) writeDigest(since time.Time, until time.Time) string {
 		log.Fatalf("Error creating processed markdown file: %s", err)
 	}
 	defer md.Close()
-	_, err = md.WriteString(digest.toMarkdown())
+	_, err = md.WriteString(digest.ToMarkdown())
 	if err != nil {
 		log.Fatalf("Error writing to processed markdown file: %s", err)
 	}
