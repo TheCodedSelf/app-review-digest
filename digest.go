@@ -18,6 +18,7 @@ type Digest struct {
 }
 
 type Review struct {
+	Author  string
 	Title   string
 	Content string
 	Date    string
@@ -41,6 +42,7 @@ func NewDigest(reviewResponses []ReviewsResponseEntry, since time.Time, until ti
 	// Populate reviews from response objects
 	for _, reviewResponse := range reviewResponses {
 		review := Review{
+			Author:  reviewResponse.Author.Name.Label,
 			Title:   reviewResponse.Title.Label,
 			Content: reviewResponse.Content.Label,
 			Date:    reviewResponse.Updated.Label,
@@ -73,6 +75,7 @@ func (d Digest) ToMarkdown() string {
 		}
 		builder.WriteString(fmt.Sprintf("**%s star(s)** — _%s_\n\n", review.Rating, dateString))
 		builder.WriteString(fmt.Sprintf("%s\n", review.Content))
+		builder.WriteString(fmt.Sprintf("\nby _%s_\n", review.Author))
 	}
 	return builder.String()
 }

@@ -84,10 +84,15 @@ type ReviewsResponseFeed struct {
 }
 
 type ReviewsResponseEntry struct {
+	Author  UserResponse
 	Title   TextResponse
 	Content TextResponse
 	Updated TextResponse
 	Rating  TextResponse `json:"im:rating"`
+}
+
+type UserResponse struct {
+	Name TextResponse
 }
 
 type TextResponse struct {

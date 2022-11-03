@@ -9,6 +9,7 @@ import (
 
 func TestMakesMarkdown(t *testing.T) {
 	review1 := Review{
+		Author:  "Eager Beaver",
 		Title:   "Love it!",
 		Content: "Great app.",
 		Date:    "2022-10-26T08:44:41-07:00",
@@ -16,6 +17,7 @@ func TestMakesMarkdown(t *testing.T) {
 	}
 
 	review2 := Review{
+		Author:  "Cynic",
 		Title:   "Meh",
 		Content: "I've seen better.",
 		Date:    "2022-10-24T12:47:16-07:00",
@@ -34,10 +36,14 @@ Juicy reviews inside!
 **%s star(s)** — _Wed Oct 26 08:44:41 2022_
 
 Great app.
+
+by _Eager Beaver_
 ## Meh
 **%s star(s)** — _Mon Oct 24 12:47:16 2022_
 
 I've seen better.
+
+by _Cynic_
 `
 
 	expected := fmt.Sprintf(expectedFormat, review1.Rating, review2.Rating)

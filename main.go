@@ -14,11 +14,11 @@ import (
 
 func main() {
 	// Command line flags
-	hourFlag := flag.Int("hour", -1, "Optional. Change the hour to schedule newsletter between 0 and 23.")
-	minuteFlag := flag.Int("minute", -1, "Optional. Change the minute to schedule newsletter between 0 and 59.")
-	intervalFlag := flag.Int("interval", -1, "Optional. Change the interval of the newsletter. Specified in days. Default 1.")
+	hourFlag := flag.Int("hour", -1, "Optional. Change the hour to schedule digests between 0 and 23.")
+	minuteFlag := flag.Int("minute", -1, "Optional. Change the minute to schedule digests between 0 and 59.")
+	intervalFlag := flag.Int("interval", -1, "Optional. Change the interval (how many days of reviews) of the digest publication. Specified in days. Default 1.")
 	appIDFlag := flag.String("app", "", "Optional. Configure the Apple app ID to poll.")
-	nowFlag := flag.Bool("now", false, "Optional. Try publish a new newsletter and then exit.")
+	nowFlag := flag.Bool("now", false, "Optional. Try publish a new digest and then exit. Returns the last digest if published in the last 24 hours")
 	flag.Parse()
 
 	var configManager ConfigManager = NewLocalFileConfigManager()
