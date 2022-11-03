@@ -118,6 +118,7 @@ func (c LocalFileConfigManager) fetchConfiguration() Configuration {
 		config := Configuration{}
 		config.AppID = c.DefaultAppID
 		config.PublishTime = TimeOfDay{}
+		config.PublishInterval = c.DefaultPublishInterval
 		c.writeToFile(config)
 		return config
 	}
